@@ -1,18 +1,20 @@
-﻿using BookMartWeb.Data;
-using BookMartWeb.Models;
+﻿using BookMart.DataAccess.Data;
+using BookMart.DataAccess.Repository.IRepository;
+using BookMart.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookMartWeb.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ApplicationDbContext _db;
-        public CategoryController(ApplicationDbContext db) {
-            _db = db;
+      
+        private readonly IUnitOfWork _unitOfWork;
+        public CategoryController(IUnitOfWork unitOfWork) {
+            _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
         {
-            List<Category> objCategoryList = _db.Categories.ToList();
+            List<Category> objCategoryList = _unitOfWork.CategoryRepository.GetAll().ToList();
             return View(objCategoryList);
         }
         public IActionResult Create()
@@ -33,8 +35,8 @@ namespace BookMartWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                _db.Categories.Add(obj);
-                _db.SaveChanges();
+                _unitOfWork.CategoryRepository.Add(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "Created Successfully";
                 return RedirectToAction("Index");
             }
@@ -49,7 +51,7 @@ namespace BookMartWeb.Controllers
                 return NotFound();
             }
 
-           Category? category = _db.Categories.Find(id);
+           Category? category = _unitOfWork.CategoryRepository.Get(u=>u.Id==id);
 
             if (category == null)
             {
@@ -65,8 +67,8 @@ namespace BookMartWeb.Controllers
     
             if (ModelState.IsValid)
             {
-                _db.Categories.Update(obj);
-                _db.SaveChanges();
+                _unitOfWork.CategoryRepository.Update(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "Updated Successfully";
                 return RedirectToAction("Index");
             }
@@ -82,7 +84,7 @@ namespace BookMartWeb.Controllers
                 return NotFound();
             }
 
-            Category? category = _db.Categories.Find(id);
+            Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
 
             if (category == null)
             {
@@ -95,13 +97,13 @@ namespace BookMartWeb.Controllers
         [HttpPost,ActionName("Delete")]
         public IActionResult DeletePost(int? id)
         {
-            Category? category = _db.Categories.Find(id);
+            Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
             if (category == null)
             {
                 return NotFound();
             }
-            _db.Categories.Remove(category);
-            _db.SaveChanges(true);
+            _unitOfWork.CategoryRepository.Remove(category);
+            _unitOfWork.Save();
             TempData["success"] = "Deleted Successfully";
             return RedirectToAction("Index");
 

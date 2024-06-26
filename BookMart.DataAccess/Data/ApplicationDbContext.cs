@@ -1,7 +1,7 @@
-﻿using BookMartWeb.Models;
+﻿using BookMart.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace BookMartWeb.Data
+namespace BookMart.DataAccess.Data
 {
     public class ApplicationDbContext : DbContext
     {
