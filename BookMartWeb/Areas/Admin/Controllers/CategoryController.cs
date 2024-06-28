@@ -3,13 +3,15 @@ using BookMart.DataAccess.Repository.IRepository;
 using BookMart.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BookMartWeb.Controllers
+namespace BookMartWeb.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class CategoryController : Controller
     {
-      
+
         private readonly IUnitOfWork _unitOfWork;
-        public CategoryController(IUnitOfWork unitOfWork) {
+        public CategoryController(IUnitOfWork unitOfWork)
+        {
             _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
@@ -20,7 +22,7 @@ namespace BookMartWeb.Controllers
         public IActionResult Create()
         {
             return View();
-            
+
 
         }
         [HttpPost]
@@ -46,12 +48,12 @@ namespace BookMartWeb.Controllers
         }
         public IActionResult Edit(int? id)
         {
-            if (id == null || id==0)
+            if (id == null || id == 0)
             {
                 return NotFound();
             }
 
-           Category? category = _unitOfWork.CategoryRepository.Get(u=>u.Id==id);
+            Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
 
             if (category == null)
             {
@@ -64,7 +66,7 @@ namespace BookMartWeb.Controllers
         [HttpPost]
         public IActionResult Edit(Category obj)
         {
-    
+
             if (ModelState.IsValid)
             {
                 _unitOfWork.CategoryRepository.Update(obj);
@@ -94,7 +96,7 @@ namespace BookMartWeb.Controllers
 
 
         }
-        [HttpPost,ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]
         public IActionResult DeletePost(int? id)
         {
             Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
