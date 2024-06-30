@@ -1,23 +1,22 @@
-﻿using BookMart.DataAccess.Data;
-using BookMart.DataAccess.Repository.IRepository;
+﻿using BookMart.DataAccess.Repository.IRepository;
 using BookMart.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookMartWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class CategoryController : Controller
+    public class ProductController : Controller
     {
-
         private readonly IUnitOfWork _unitOfWork;
-        public CategoryController(IUnitOfWork unitOfWork)
+
+        public ProductController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
         {
-            List<Category> objCategoryList = _unitOfWork.CategoryRepository.GetAll().ToList();
-            return View(objCategoryList);
+            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll().ToList();
+            return View(objProductList);
         }
         public IActionResult Create()
         {
@@ -26,18 +25,18 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
         }
         [HttpPost]
-        public IActionResult Create(Category obj)
+        public IActionResult Create(Product obj)
         {
-            //test custom validation
-            if (obj.DisplayOrder.ToString().Equals(obj.Name))
-            {
+            ////test custom validation
+            //if (obj.DisplayOrder.ToString().Equals(obj.Name))
+            //{
 
-                ModelState.AddModelError("", "The Display order cannot be same as Name");
-            }
+            //    ModelState.AddModelError("", "The Display order cannot be same as Name");
+            //}
 
             if (ModelState.IsValid)
             {
-                _unitOfWork.CategoryRepository.Add(obj);
+                _unitOfWork.ProductRepository.Add(obj);
                 _unitOfWork.Save();
                 TempData["success"] = "Created Successfully";
                 return RedirectToAction("Index");
@@ -53,23 +52,24 @@ namespace BookMartWeb.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
+            Product? product = _unitOfWork.ProductRepository.Get(u => u.Id == id);
 
-            if (category == null)
+            if (product == null)
             {
                 return NotFound();
             }
-            return View(category);
+            return View(product);
 
 
         }
+
         [HttpPost]
-        public IActionResult Edit(Category obj)
+        public IActionResult Edit(Product obj)
         {
 
             if (ModelState.IsValid)
             {
-                _unitOfWork.CategoryRepository.Update(obj);
+                _unitOfWork.ProductRepository.Update(obj);
                 _unitOfWork.Save();
                 TempData["success"] = "Updated Successfully";
                 return RedirectToAction("Index");
@@ -86,25 +86,25 @@ namespace BookMartWeb.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
+            Product? product = _unitOfWork.ProductRepository.Get(u => u.Id == id);
 
-            if (category == null)
+            if (product == null)
             {
                 return BadRequest();
             }
-            return View(category);
+            return View(product);
 
 
         }
         [HttpPost, ActionName("Delete")]
         public IActionResult DeletePost(int? id)
         {
-            Category? category = _unitOfWork.CategoryRepository.Get(u => u.Id == id);
-            if (category == null)
+            Product? product = _unitOfWork.ProductRepository.Get(u => u.Id == id);
+            if (product == null)
             {
                 return NotFound();
             }
-            _unitOfWork.CategoryRepository.Remove(category);
+            _unitOfWork.ProductRepository.Remove(product);
             _unitOfWork.Save();
             TempData["success"] = "Deleted Successfully";
             return RedirectToAction("Index");

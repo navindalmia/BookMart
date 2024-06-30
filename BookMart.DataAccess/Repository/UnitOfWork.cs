@@ -12,12 +12,14 @@ namespace BookMart.DataAccess.Repository
     public class UnitOfWork : IUnitOfWork
     {
         public ICategoryRepository CategoryRepository { private set; get; }
+        public IProductRepository ProductRepository { private set; get; }
 
         private ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db) 
         {
             _db = db;
             CategoryRepository = new CategoryRepository(_db);
+            ProductRepository = new ProductRepository(_db);
         }
         public void Save()
         {
