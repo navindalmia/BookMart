@@ -1,6 +1,8 @@
 ﻿using BookMart.DataAccess.Repository.IRepository;
 using BookMart.Models;
+using BookMart.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookMartWeb.Areas.Admin.Controllers
 {
@@ -8,10 +10,11 @@ namespace BookMartWeb.Areas.Admin.Controllers
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public ProductController(IUnitOfWork unitOfWork)
+        private readonly ILogger<ProductController> _logger;
+        public ProductController(IUnitOfWork unitOfWork, ILogger<ProductController> logger)
         {
             _unitOfWork = unitOfWork;
+            _logger = logger;
         }
         public IActionResult Index()
         {
@@ -20,12 +23,26 @@ namespace BookMartWeb.Areas.Admin.Controllers
         }
         public IActionResult Create()
         {
-            return View();
+            _logger.LogDebug("Create invoked");
+            ProductVM productVM = new ProductVM()
+            {
+                CategoryList = _unitOfWork.CategoryRepository
+                .GetAll().Select(
+                u => new SelectListItem
+                {
+                    Text = u.Name,
+                    Value = u.Id.ToString()
+                }
+                )
+                , Product = new Product()
+            };
+            //ViewBag.CategoryList = CategoryList;
+            return View(productVM);
 
 
         }
         [HttpPost]
-        public IActionResult Create(Product obj)
+        public IActionResult Create(ProductVM obj)
         {
             ////test custom validation
             //if (obj.DisplayOrder.ToString().Equals(obj.Name))
@@ -36,13 +53,30 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                _unitOfWork.ProductRepository.Add(obj);
+                _unitOfWork.ProductRepository.Add(obj.Product);
                 _unitOfWork.Save();
                 TempData["success"] = "Created Successfully";
                 return RedirectToAction("Index");
             }
-            return View();
-
+            else
+            {
+                ProductVM productVM = new ProductVM()
+                {
+                    CategoryList = _unitOfWork.CategoryRepository
+               .GetAll().Select(
+               u => new SelectListItem
+               {
+                   Text = u.Name,
+                   Value = u.Id.ToString()
+               }
+               )
+               ,
+                    Product = new Product()
+                };
+                //ViewBag.CategoryList = CategoryList;
+                return View(productVM);
+                
+            }
 
         }
         public IActionResult Edit(int? id)
