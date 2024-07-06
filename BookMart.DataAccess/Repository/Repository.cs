@@ -20,6 +20,7 @@ namespace BookMart.DataAccess.Repository
         {
             _context = context;
             this.db_Set = _context.Set<T>();
+            _context.Products.Include(u => u.Category);
         }
 
         public void Add(T entity)
@@ -27,16 +28,33 @@ namespace BookMart.DataAccess.Repository
             db_Set.Add(entity);
         }
 
-        public T Get(Expression<Func<T, bool>> predicate)
+        public T Get(Expression<Func<T, bool>> predicate, string? includeProperties = null)
         {
             IQueryable<T> query = db_Set;
             query = query.Where(predicate);
+            if (!string.IsNullOrEmpty(includeProperties))
+            {
+                foreach (var property in includeProperties
+                    .Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    query = query.Include(property);
+
+                }
+            }
             return query.FirstOrDefault();
         }
 
-        public IEnumerable<T> GetAll()
+        public IEnumerable<T> GetAll(string? includeProperties = null)
         {
             IQueryable<T> query = db_Set;
+            if (!string.IsNullOrEmpty(includeProperties))
+            {
+                foreach (var property in includeProperties
+                    .Split(',' , StringSplitOptions.RemoveEmptyEntries)) {
+                    query = query.Include(property);
+
+                }
+            }
             return query.ToList();
         }
 

@@ -10,18 +10,20 @@ namespace BookMartWeb.Areas.Admin.Controllers
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly ILogger<ProductController> _logger;
-        public ProductController(IUnitOfWork unitOfWork, ILogger<ProductController> logger)
+        public ProductController(IUnitOfWork unitOfWork, ILogger<ProductController> logger, IWebHostEnvironment webHostEnvironment)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _webHostEnvironment = webHostEnvironment;
         }
         public IActionResult Index()
         {
-            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll().ToList();
+            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll("Category").ToList();
             return View(objProductList);
         }
-        public IActionResult Create()
+        public IActionResult Upsert(int? id)
         {
             _logger.LogDebug("Create invoked");
             ProductVM productVM = new ProductVM()
@@ -36,13 +38,25 @@ namespace BookMartWeb.Areas.Admin.Controllers
                 )
                 , Product = new Product()
             };
+            if(id== null || id == 0)
+            {
+                //Create
+                return View(productVM);
+            }
+            else
+            {
+                //Update
+                productVM.Product = _unitOfWork.ProductRepository.Get(u=> u.Id == id);
+                return View(productVM);
+
+            }
             //ViewBag.CategoryList = CategoryList;
-            return View(productVM);
+         
 
 
         }
         [HttpPost]
-        public IActionResult Create(ProductVM obj)
+        public IActionResult Upsert(ProductVM obj, IFormFile? file)
         {
             ////test custom validation
             //if (obj.DisplayOrder.ToString().Equals(obj.Name))
@@ -53,7 +67,36 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                _unitOfWork.ProductRepository.Add(obj.Product);
+                string wwwRootPath = _webHostEnvironment.WebRootPath;
+                if (file != null)
+                {
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                    string productPath = Path.Combine(wwwRootPath, @"images\product");
+
+                    if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                    {
+                        file.CopyTo(fileStream);
+                    }
+                    obj.Product.ImageUrl = @"\images\product\" + fileName;
+                }
+                if (obj.Product.Id == 0)
+                {
+                    _unitOfWork.ProductRepository.Add(obj.Product);
+                }
+                else
+                {
+                    _unitOfWork.ProductRepository.Update(obj.Product);
+                }
+                
                 _unitOfWork.Save();
                 TempData["success"] = "Created Successfully";
                 return RedirectToAction("Index");
@@ -79,7 +122,7 @@ namespace BookMartWeb.Areas.Admin.Controllers
             }
 
         }
-        public IActionResult Edit(int? id)
+        /*public IActionResult Edit(int? id)
         {
             if (id == null || id == 0)
             {
@@ -112,8 +155,8 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
 
         }
-
-        public IActionResult Delete(int? id)
+        */
+        /*public IActionResult Delete(int? id)
         {
             if (id == null || id == 0)
             {
@@ -145,5 +188,35 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
 
         }
+        */
+        #region API Calls
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll("Category").ToList();
+            return Json(new { data = objProductList });
+
+        }
+        [HttpDelete]
+        public IActionResult Delete(int? id)
+        {
+            Product? productToBeDeleted = _unitOfWork.ProductRepository.Get(u => u.Id == id);
+            if(productToBeDeleted == null)
+            {
+                return Json(new { success = false, message = "Error while deleting" });
+            }
+            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, productToBeDeleted.ImageUrl.TrimStart('\\'));
+            if (System.IO.File.Exists(oldImagePath))
+            {
+                System.IO.File.Delete(oldImagePath);
+            }
+            _unitOfWork.ProductRepository.Remove(productToBeDeleted);
+            _unitOfWork.Save();
+           
+            return Json(new { success=true , message ="Delete Successful" });
+
+        }
+        #endregion
     }
 }
