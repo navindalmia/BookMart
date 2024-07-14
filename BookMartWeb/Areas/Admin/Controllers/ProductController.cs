@@ -1,12 +1,15 @@
 ﻿using BookMart.DataAccess.Repository.IRepository;
 using BookMart.Models;
 using BookMart.Models.ViewModels;
+using BookMart.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BookMartWeb.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class ProductController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
