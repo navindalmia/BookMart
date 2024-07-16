@@ -13,13 +13,14 @@ namespace BookMart.DataAccess.Repository
     {
         public ICategoryRepository CategoryRepository { private set; get; }
         public IProductRepository ProductRepository { private set; get; }
-
+        public ICompanyRepository CompanyRepository { private set; get; }
         private ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db) 
         {
             _db = db;
             CategoryRepository = new CategoryRepository(_db);
             ProductRepository = new ProductRepository(_db);
+            CompanyRepository = new CompanyRepository(_db);
         }
         public void Save()
         {
