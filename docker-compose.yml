@@ -1,0 +1,38 @@
+services:
+  bmweb:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=3000
+      - ASPNETCORE_HTTP_PORTS=3001
+      - ConnectionStrings__DefaultConnection=Server=dbServer;Database=BookMartDB;User=SA;Password=Sapass123;
+    container_name: bmweb
+    build:
+      context: .
+      dockerfile: BookMartWeb/Dockerfile
+    image: bmweb
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    depends_on:
+      dbServer:
+        condition: service_healthy
+
+
+  dbServer:
+    image: "mcr.microsoft.com/mssql/server"
+    container_name: db
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=y
+      - SA_PASSWORD=Sapass123
+    volumes:
+      - ./sqlserver/data:/var/opt/mssql/data
+      - ./sql/log:/var/opt/mssql/log
+
+    healthcheck:
+      test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Sapass123" -Q "SELECT 1" -b -o /dev/null
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
