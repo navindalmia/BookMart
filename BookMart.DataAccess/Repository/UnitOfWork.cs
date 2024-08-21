@@ -14,6 +14,10 @@ namespace BookMart.DataAccess.Repository
         public ICategoryRepository CategoryRepository { private set; get; }
         public IProductRepository ProductRepository { private set; get; }
         public ICompanyRepository CompanyRepository { private set; get; }
+        public IShoppingCartRepository ShoppingCartRepository { private set; get; }
+
+        public IApplicationUserRepository ApplicationUserRepository { private set; get; }
+
         private ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db) 
         {
@@ -21,6 +25,8 @@ namespace BookMart.DataAccess.Repository
             CategoryRepository = new CategoryRepository(_db);
             ProductRepository = new ProductRepository(_db);
             CompanyRepository = new CompanyRepository(_db);
+            ShoppingCartRepository = new ShoppingCartRepository(_db);
+            ApplicationUserRepository = new ApplicationUserRepository(_db);
         }
         public void Save()
         {

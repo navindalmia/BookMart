@@ -28,9 +28,17 @@ namespace BookMart.DataAccess.Repository
             db_Set.Add(entity);
         }
 
-        public T Get(Expression<Func<T, bool>> predicate, string? includeProperties = null)
+        public T Get(Expression<Func<T, bool>> predicate, string? includeProperties = null, bool tracked = false)
         {
-            IQueryable<T> query = db_Set;
+            IQueryable<T> query;
+            if (tracked){
+                query = db_Set;
+            }
+            else
+            {
+                query = db_Set.AsNoTracking();
+            }
+            
             query = query.Where(predicate);
             if (!string.IsNullOrEmpty(includeProperties))
             {
