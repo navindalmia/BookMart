@@ -17,6 +17,9 @@ namespace BookMart.DataAccess.Repository
         public IShoppingCartRepository ShoppingCartRepository { private set; get; }
 
         public IApplicationUserRepository ApplicationUserRepository { private set; get; }
+        public IOrderHeaderRepository OrderHeaderRepository { private set; get; }
+        public IOrderDetailRepository OrderDetailRepository { private set; get; }
+
 
         private ApplicationDbContext _db;
         public UnitOfWork(ApplicationDbContext db) 
@@ -27,6 +30,8 @@ namespace BookMart.DataAccess.Repository
             CompanyRepository = new CompanyRepository(_db);
             ShoppingCartRepository = new ShoppingCartRepository(_db);
             ApplicationUserRepository = new ApplicationUserRepository(_db);
+            OrderHeaderRepository = new OrderHeaderRepository(_db);
+            OrderDetailRepository = new OrderDetailRepository(_db);
         }
         public void Save()
         {

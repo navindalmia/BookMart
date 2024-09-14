@@ -21,7 +21,7 @@ namespace BookMartWeb.Areas.Customer.Controllers
 
         public IActionResult Index()
         {
-            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll("Category").ToList();
+            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll(includeProperties:"Category").ToList();
             return View(objProductList);
 
         }
