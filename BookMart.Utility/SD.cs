@@ -22,10 +22,10 @@ namespace BookMart.Utility
 		
 
 
-		public const string PendingStatusPending = "Pending";
-		public const string PendingStatusApproved = "Approved";
-		public const string PendingStatusDelayedPayment = "ApprovedForDelayedPayment";
-		public const string PendingStatusRejected = "Rejected";
+		public const string PaymentStatusPending = "Pending";
+		public const string PaymentStatusApproved = "Approved";
+		public const string PaymentStatusDelayedPayment = "ApprovedForDelayedPayment";
+		public const string PaymentStatusRejected = "Rejected";
 
 
 	}

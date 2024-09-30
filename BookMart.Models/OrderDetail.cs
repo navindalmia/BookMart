@@ -19,7 +19,7 @@ namespace BookMart.Models
 
         [ForeignKey("OrderHeaderId")]
         [ValidateNever]
-        public Product OrderHeader { get; set; }
+        public OrderHeader OrderHeader { get; set; }
 
         public int ProductId { get; set; }
         [Required]
