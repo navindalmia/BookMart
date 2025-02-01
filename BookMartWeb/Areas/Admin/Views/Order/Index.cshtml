@@ -1,0 +1,81 @@
+﻿
+<div class="card shadow border-0 mt-4">
+    <div class-"card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-black py-2">Order List</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+
+
+
+
+
+        <table id="tblData" class="table table-bordered table-striped mb-5" style="width:100%">
+            <thead>
+                <tr>
+                    <th>
+                        Id
+                    </th>
+
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Phone Number
+                    </th>
+                    <th>
+                        Email
+                    </th>
+                    <th>
+                        Status
+                    </th>
+                    <th>
+                        Total
+                    </th>
+                    <th> </th>
+                </tr>
+            </thead>
+            @*  <tbody>
+            @foreach (var obj in Model)
+            {
+            <tr>
+            <td>
+            @obj.Title
+            </td>
+
+            <td>
+            @obj.ISBN
+            </td>
+            <td>
+            @obj.ListPrice
+            </td>
+            <td>
+            @obj.Author
+            </td>
+            <td>
+            @obj.Category.Name
+            </td>
+
+            <td>
+            <div class="w-75 btn-group" role="group">
+            <a asp-controller="Product" asp-action="Upsert" asp-route-id="@obj.Id" class="btn btn-primary mx-2">
+            <i class="bi bi-pencil-fill">  Edit</i>
+            </a>
+            <a asp-controller="Product" asp-action="Delete" asp-route-id="@obj.Id" class="btn btn-danger mx-2">
+            <i class="bi bi-trash-fill">  Delete</i>
+            </a>
+            </div>
+            </td>
+            </tr>
+            }
+            </tbody> *@
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/order.js"></script>
+}
