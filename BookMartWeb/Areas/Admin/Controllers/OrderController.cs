@@ -1,16 +1,19 @@
-﻿using BookMart.DataAccess.Repository.IRepository;
+﻿using BookMart.DataAccess.Repository;
+using BookMart.DataAccess.Repository.IRepository;
 using BookMart.Models;
 using BookMart.Models.ViewModels;
 using BookMart.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 using System.Diagnostics;
 using System.Security.Claims;
 
 namespace BookMartWeb.Areas.Admin.Controllers
 {
     [Area("admin")]
+    [Authorize()]
     public class OrderController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -24,6 +27,65 @@ namespace BookMartWeb.Areas.Admin.Controllers
         {
             return View();
         }
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+        public IActionResult StartProcessing()
+        {
+            _unitOfWork.OrderHeaderRepository.UpdateStatus(orderVM.OrderHeader.Id,SD.StatusInProcess);
+            _unitOfWork.Save();
+
+            TempData["Success"] = "Order Details Updated Successfully.";
+            return RedirectToAction(nameof(Details), new { orderId = orderVM.OrderHeader.Id });
+
+        }
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+        public IActionResult ShipOrder()
+        {
+            var orderHeader = _unitOfWork.OrderHeaderRepository.Get(u=> u.Id == orderVM.OrderHeader.Id);
+            orderHeader.TrackingNumber=orderVM.OrderHeader.TrackingNumber;
+            orderHeader.Carrier = orderVM.OrderHeader.Carrier;
+            orderHeader.OrderStatus = SD.StatusShipped;
+            orderHeader.ShippingDate = DateTime.Now;
+            if(orderHeader.PaymentStatus == SD.PaymentStatusDelayedPayment)
+            {
+                orderHeader.PaymentDueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(30));
+            }
+            _unitOfWork.OrderHeaderRepository.Update(orderHeader);
+            _unitOfWork.Save();    
+
+            TempData["Success"] = "Order Shipped Successfully.";
+            return RedirectToAction(nameof(Details), new { orderId = orderVM.OrderHeader.Id });
+
+        }
+        [HttpPost]
+        [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
+        public IActionResult CancelOrder()
+        {
+            var orderHeader = _unitOfWork.OrderHeaderRepository.Get(u => u.Id == orderVM.OrderHeader.Id);
+            if (orderHeader.PaymentStatus == SD.PaymentStatusApproved)
+            {
+                var options = new RefundCreateOptions
+                {
+                    Reason = RefundReasons.RequestedByCustomer,
+                    PaymentIntent = orderHeader.PaymentIntentId
+                };
+                var service = new RefundService();
+                Refund refund = service.Create(options);
+                _unitOfWork.OrderHeaderRepository.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusRefunded);
+
+            }else
+            {
+                _unitOfWork.OrderHeaderRepository.UpdateStatus(orderHeader.Id, SD.StatusCancelled, SD.StatusCancelled);
+            }
+            _unitOfWork.OrderHeaderRepository.Update(orderHeader);
+            _unitOfWork.Save();
+
+            TempData["Success"] = "Order Cancelled Successfully.";
+            return RedirectToAction(nameof(Details), new { orderId = orderVM.OrderHeader.Id });
+
+        }
+
 
         [HttpPost]
         [Authorize(Roles = SD.Role_Admin + "," + SD.Role_Employee)]
