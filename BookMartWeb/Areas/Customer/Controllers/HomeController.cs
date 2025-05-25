@@ -1,6 +1,7 @@
 using BookMart.DataAccess.Repository;
 using BookMart.DataAccess.Repository.IRepository;
 using BookMart.Models;
+using BookMart.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
@@ -21,7 +22,19 @@ namespace BookMartWeb.Areas.Customer.Controllers
 
         public IActionResult Index()
         {
+            var claimsIdentiy = (ClaimsIdentity)User.Identity;
+            var claim = claimsIdentiy.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claim != null)
+            {
+                HttpContext.Session.SetInt32(SD.SessionCart,
+                   _unitOfWork.ShoppingCartRepository.GetAll(
+               x => x.ApplicationUserId == claim.Value).Count()
+                   );
+            }
+
             List<Product> objProductList = _unitOfWork.ProductRepository.GetAll(includeProperties:"Category").ToList();
+           
             return View(objProductList);
 
         }
@@ -51,15 +64,20 @@ namespace BookMartWeb.Areas.Customer.Controllers
                 shoppingCartFromDb.Count += shoppingCart.Count;
                 
                 _unitOfWork.ShoppingCartRepository.Update(shoppingCartFromDb);
-                
+                _unitOfWork.Save();
+
             }
             else
             {
                 _unitOfWork.ShoppingCartRepository.Add(shoppingCart);
-                
+                _unitOfWork.Save();
+                HttpContext.Session.SetInt32(SD.SessionCart,
+                    _unitOfWork.ShoppingCartRepository.GetAll(
+                x => x.ApplicationUserId == userId).Count()
+                    );
             }
             TempData["success"] = "Cart updated successfully";
-            _unitOfWork.Save();
+            
             
             return RedirectToAction(nameof(Index));
 

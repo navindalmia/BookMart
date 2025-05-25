@@ -58,10 +58,12 @@ namespace BookMartWeb.Areas.Customer.Controllers
         }
         public IActionResult Minus(int cartId)
         {
-            ShoppingCart shoppingCart = _unitOfWork.ShoppingCartRepository.Get(x => x.Id == cartId);
+            ShoppingCart shoppingCart = _unitOfWork.ShoppingCartRepository.Get(x => x.Id == cartId,tracked:true);
 
             if (shoppingCart.Count <= 1)
             {
+                HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCartRepository.GetAll(u => u.ApplicationUserId == shoppingCart.ApplicationUserId).Count() - 1);
+
                 _unitOfWork.ShoppingCartRepository.Remove(shoppingCart);
             }
             else
@@ -77,9 +79,11 @@ namespace BookMartWeb.Areas.Customer.Controllers
         }
         public IActionResult Remove(int cartId)
         {
-            ShoppingCart shoppingCart = _unitOfWork.ShoppingCartRepository.Get(x => x.Id == cartId);
+            ShoppingCart shoppingCart = _unitOfWork.ShoppingCartRepository.Get(x => x.Id == cartId, tracked: true);
+            HttpContext.Session.SetInt32(SD.SessionCart, _unitOfWork.ShoppingCartRepository.GetAll(u => u.ApplicationUserId == shoppingCart.ApplicationUserId).Count() - 1);
 
             _unitOfWork.ShoppingCartRepository.Remove(shoppingCart);
+
             _unitOfWork.Save();
 
             return RedirectToAction(nameof(Index));
