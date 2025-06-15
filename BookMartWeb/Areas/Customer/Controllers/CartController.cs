@@ -171,7 +171,8 @@ namespace BookMartWeb.Areas.Customer.Controllers
             if (applicationUser.CompanyId.GetValueOrDefault() == 0)
             {
                 //normal customer hence capture payment
-                var domain = "https://localhost:7238/";
+                //var domain = "https://localhost:7238/";
+                var domain = $"{Request.Scheme}://{Request.Host}/";
                 var options = new Stripe.Checkout.SessionCreateOptions
                 {
                     
@@ -227,13 +228,15 @@ namespace BookMartWeb.Areas.Customer.Controllers
                     _unitOfWork.OrderHeaderRepository.UpdateStatus(id, SD.StatusApproved, SD.PaymentStatusApproved);
                     _unitOfWork.Save();
                 }
-                List<ShoppingCart> shoppingCarts
-                    = _unitOfWork.ShoppingCartRepository.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
-                _unitOfWork.ShoppingCartRepository.RemoveRange(shoppingCarts);
-                _unitOfWork.Save();
-
+                //HttpContext.Session.Clear();//clears all keys
+                HttpContext.Session.Remove(SD.SessionCart); //clear only the key we need to remove
             }
-            
+            List<ShoppingCart> shoppingCarts
+                    = _unitOfWork.ShoppingCartRepository.GetAll(u => u.ApplicationUserId == orderHeader.ApplicationUserId).ToList();
+            _unitOfWork.ShoppingCartRepository.RemoveRange(shoppingCarts);
+            _unitOfWork.Save();
+
+
             return View(id);
         }
         private double GetPriceBasedOnQuantity(ShoppingCart shoppingCart)
