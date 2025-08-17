@@ -131,7 +131,8 @@ namespace BookMartWeb.Areas.Admin.Controllers
         {
             orderVM.OrderHeader = _unitOfWork.OrderHeaderRepository.Get(u => u.Id == orderVM.OrderHeader.Id, includeProperties: "ApplicationUser");
             orderVM.OrderDetail = _unitOfWork.OrderDetailRepository.GetAll(u => u.OrderHeaderId == orderVM.OrderHeader.Id, includeProperties: "Product");
-            var domain = "https://localhost:7238/";
+            //var domain = "https://localhost:7238/";
+            var domain = $"{Request.Scheme}://{Request.Host}/";
             var options = new Stripe.Checkout.SessionCreateOptions
             {
 
