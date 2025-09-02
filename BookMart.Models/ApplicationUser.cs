@@ -25,6 +25,7 @@ namespace BookMart.Models
         public Company?  Company { get; set; }
 
         [NotMapped]
+        [ValidateNever]
         public string Role {  get; set; }
         
     }

@@ -30,7 +30,7 @@ function loadDataTable() {
                                 <a onclick=LockUnlock('${data.id}')  class = "btn btn-danger text-white flex-grow-1 w-auto" style = "cursor:pointer; ">
                                     <i class= "bi bi-unlock-fill"></i> Unlock
                                 </a>
-                                 <a class = "btn btn-danger text-white flex-grow-1 w-auto" style = "cursor:pointer; ">
+                                 <a href="/admin/user/ManageUserRole?id=${data.id}"  class = "btn btn-danger text-white flex-grow-1 w-auto" style = "cursor:pointer; ">
                                     <i class= "bi bi-pencil-square"></i> Permission
                                 </a>
                             </div>
@@ -44,9 +44,10 @@ function loadDataTable() {
                                 <a onclick=LockUnlock('${data.id}')  class = "btn btn-success text-white flex-grow-1 w-auto" style = "cursor:pointer; ">
                                     <i class= "bi bi-lock-fill"></i> Lock
                                 </a>
-                                 <a class = "btn btn-danger text-white flex-grow-1 w-auto" style = "cursor:pointer; ">
+                                 <a  href="/admin/user/ManageUserRole?id=${data.id}" class = "btn btn-danger text-white flex-grow-1 w-auto" style = "cursor:pointer; ">
                                     <i class= "bi bi-pencil-square"></i> Permission
                                 </a>
+                                <a
                             </div>
                             `
 
@@ -79,6 +80,22 @@ function LockUnlock(id) {
             }
         })
     }
+    /*
+function ViewPermissions(id) {
+    $.ajax({
+        type: "POST",
+        url: '/Admin/User/ViewPermissions',
+        data: JSON.stringify(id),
+        contentType: "application/json",
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                dataTable.ajax.reload();
+            }
+        }
+    })
+}
 
-//}
+
+*/
 
