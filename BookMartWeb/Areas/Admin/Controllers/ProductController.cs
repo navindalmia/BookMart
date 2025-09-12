@@ -49,7 +49,7 @@ namespace BookMartWeb.Areas.Admin.Controllers
             else
             {
                 //Update
-                productVM.Product = _unitOfWork.ProductRepository.Get(u=> u.Id == id);
+                productVM.Product = _unitOfWork.ProductRepository.Get(u=> u.Id == id,includeProperties:"ProductImages");
                 return View(productVM);
 
             }
@@ -59,7 +59,7 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
         }
         [HttpPost]
-        public IActionResult Upsert(ProductVM obj, IFormFile? file)
+        public IActionResult Upsert(ProductVM obj, List<IFormFile>? files)
         {
             ////test custom validation
             //if (obj.DisplayOrder.ToString().Equals(obj.Name))
@@ -70,27 +70,6 @@ namespace BookMartWeb.Areas.Admin.Controllers
 
             if (ModelState.IsValid)
             {
-                string wwwRootPath = _webHostEnvironment.WebRootPath;
-                if (file != null)
-                {
-                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                    string productPath = Path.Combine(wwwRootPath, @"images\product");
-
-                    if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
-                    {
-                        var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('\\'));
-                        if (System.IO.File.Exists(oldImagePath))
-                        {
-                            System.IO.File.Delete(oldImagePath);
-                        }
-                    }
-
-                    using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
-                    {
-                        file.CopyTo(fileStream);
-                    }
-                    obj.Product.ImageUrl = @"\images\product\" + fileName;
-                }
                 if (obj.Product.Id == 0)
                 {
                     _unitOfWork.ProductRepository.Add(obj.Product);
@@ -99,8 +78,62 @@ namespace BookMartWeb.Areas.Admin.Controllers
                 {
                     _unitOfWork.ProductRepository.Update(obj.Product);
                 }
-                
+
                 _unitOfWork.Save();
+           
+
+                string wwwRootPath = _webHostEnvironment.WebRootPath;
+                if (files != null)
+                {
+                    foreach (var file in files)
+                    {
+                        string fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+                        string productPath = @"images\products\product-" + obj.Product.Id;
+                            
+                         //string Path.Combine(wwwRootPath, @"images\product");
+
+                        string finalPath = Path.Combine(wwwRootPath, productPath);
+                        if (!Directory.Exists(finalPath))
+                        {
+                            Directory.CreateDirectory(finalPath);
+                        }
+                        using (var fileStream = new FileStream(Path.Combine(finalPath, fileName), FileMode.Create))
+                        {
+                            file.CopyTo(fileStream);
+                        }
+                        ProductImage productImage = new()
+                        {
+                            ImageUrl = @"\" + productPath + @"\" + fileName,
+                            ProductId = obj.Product.Id
+                        };
+                        if(obj.Product.ProductImages ==null)
+                        {
+                            obj.Product.ProductImages = new List<ProductImage>();   
+                        }
+                        obj.Product.ProductImages.Add(productImage);
+
+
+
+                    }
+
+                    _unitOfWork.ProductRepository.Update(obj.Product);
+                    _unitOfWork.Save();
+                    /*   if(!string.IsNullOrEmpty(obj.Product.ImageUrl))
+                       {
+                           var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('\\'));
+                           if (System.IO.File.Exists(oldImagePath))
+                           {
+                               System.IO.File.Delete(oldImagePath);
+                           }
+                       }*/
+
+                    /* using (var fileStream = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                     {
+                         file.CopyTo(fileStream);
+                     }
+                     obj.Product.ImageUrl = @"\images\product\" + fileName;*/
+                }
+               
                 TempData["success"] = "Created Successfully";
                 return RedirectToAction("Index");
             }
@@ -125,6 +158,43 @@ namespace BookMartWeb.Areas.Admin.Controllers
             }
 
         }
+
+        public IActionResult DeleteImage(int imageId)
+        {
+            ProductImage image = _unitOfWork.ProductImageRepository.Get(u=>u.Id==imageId);
+
+            DeleteImageUtil(image);
+
+            //if (image != null && image.ImageUrl != null)
+            //{
+            //    var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
+            //    if (System.IO.File.Exists(oldImagePath))
+            //    {
+            //        System.IO.File.Delete(oldImagePath);
+            //    }
+            //    _unitOfWork.ProductImageRepository.Remove(image);
+            //    _unitOfWork.Save();
+            //    TempData["success"] = "Deleted Successfully";
+            //}
+                return RedirectToAction(nameof(Upsert),new {id=image.ProductId});
+        }
+
+        public void DeleteImageUtil(ProductImage image)
+        {
+            if (image != null && image.ImageUrl != null)
+            {
+                var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, image.ImageUrl.TrimStart('\\'));
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+                _unitOfWork.ProductImageRepository.Remove(image);
+                _unitOfWork.Save();
+                TempData["success"] = "Deleted Successfully";
+            }
+        }
+
+
         /*public IActionResult Edit(int? id)
         {
             if (id == null || id == 0)
@@ -209,17 +279,30 @@ namespace BookMartWeb.Areas.Admin.Controllers
             {
                 return Json(new { success = false, message = "Error while deleting" });
             }
-            var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, productToBeDeleted.ImageUrl.TrimStart('\\'));
+            DeleteProductImageDirectory(productToBeDeleted.Id);
+           /* var oldImagePath = Path.Combine(_webHostEnvironment.WebRootPath, productToBeDeleted.ImageUrl.TrimStart('\\'));
             if (System.IO.File.Exists(oldImagePath))
             {
                 System.IO.File.Delete(oldImagePath);
-            }
+            }*/
             _unitOfWork.ProductRepository.Remove(productToBeDeleted);
             _unitOfWork.Save();
            
             return Json(new { success=true , message ="Delete Successful" });
 
         }
+        void DeleteProductImageDirectory(int productId)
+        {
+            string productPath = @"images\products\product-" + productId;
+            var directoryToBeDeleted = Path.Combine(_webHostEnvironment.WebRootPath, productPath);
+            if (Directory.Exists(directoryToBeDeleted))
+            {
+                Directory.Delete(directoryToBeDeleted, recursive: true);
+            }
+        }
+
+
+
         #endregion
     }
 }
