@@ -33,7 +33,7 @@ namespace BookMartWeb.Areas.Customer.Controllers
                    );
             }
 
-            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll(includeProperties:"Category").ToList();
+            List<Product> objProductList = _unitOfWork.ProductRepository.GetAll(includeProperties:"Category,ProductImages").ToList();
            
             return View(objProductList);
 
@@ -42,7 +42,7 @@ namespace BookMartWeb.Areas.Customer.Controllers
         {
             ShoppingCart shoppingCart = new()
             {
-                Product = _unitOfWork.ProductRepository.Get(u => u.Id == productId, "Category"),
+                Product = _unitOfWork.ProductRepository.Get(u => u.Id == productId, "Category,ProductImages"),
                 Count = 1,
                 ProductId = productId
             };
